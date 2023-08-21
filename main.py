@@ -27,7 +27,6 @@ funds = [
 
 def get_profit(fund, from_date, to_date):
 
-    fund_name = fund['name']
     fund_id = fund['id']
 
     url = f"https://fintual.cl/api/real_assets/{fund_id}/days?from_date={from_date}&to_date={to_date}"
@@ -41,33 +40,42 @@ def get_profit(fund, from_date, to_date):
 
     # PD: Se usa el metodo float para pasar la respuesta de formato string a numerico, para poder asi calcular el rendimiento la formula entregada. Se calcula el profit entre la primera y ultima posición obtenida en el array "nav_risk". De esta manera se puede calcular el profit en rangos de fechas mas amplios si se lo deseara:
 
-    profit = (nav_risky[-1] - nav_risky[0])/nav_risky[0]*100
+    profit = ((nav_risky[-1] - nav_risky[0])/nav_risky[0])*100
 
-    return fund_name, profit
+    return profit
 
 
 # Ahora, creo un bucle "for" en el que se itera en cada posición del array y realiza una llamada a la API de Fintual obtener la info para cada fondo:
 for fund in funds:
-    fund_name, profit = get_profit(fund, from_date, to_date)
+    fund_name = fund['name']
+    profit = get_profit(fund, from_date, to_date)
 
     # Finalmente, se imprime el resultado por consola para cada uno de los fondos:
     print(
         f'La rentabilidad 📈 de nuestro fondo {fund_name} el {to_date} fue de: {round(profit, 2)}%')
 
 
-# Bonus: Obtenmos el rendimiento del ultimo año :)
+# Bonus: Obtenmos el rendimiento de los ultimos 3 años :)
 
-def get_dates():
+def get_dates(year):
     set_date = datetime.date.today()
     end_date = set_date - datetime.timedelta(days=1)
     init_date = datetime.date(
-        end_date.year - 1, end_date.month, end_date.day)
+        end_date.year - year, end_date.month, end_date.day)
 
     return init_date, end_date
 
 
 for fund in funds:
-    year_from_date, year_to_date = get_dates()
-    fund_name, profit = get_profit(fund, year_from_date, year_to_date)
-    print(
-        f'La rentabilidad Anual 📅 de nuestro fondo {fund_name} fue de: {round(profit, 2)}% 📈')
+    fund_name = fund['name']
+    years = [1, 2, 3]
+    print(f'\nLa rentabilidad del fondo 📅 {fund_name} fue:')
+    for year in years:
+        year_from_date, year_to_date = get_dates(year)
+        profit = get_profit(fund, year_from_date, year_to_date)
+        if profit > 0:
+            print(
+                f'{year} año/s es de: {round(profit, 2)}% 📈')
+        else:
+            print(
+                f'{year} año/s es de: {round(profit, 2)}% 📉')
